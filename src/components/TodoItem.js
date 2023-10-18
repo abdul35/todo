@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { styled } from "styled-components";
+import { useDispatch } from "react-redux";
+import { removeTodo, completeTodo } from "../redux/slices/todoSlice";
+import Modal from "../components/Modal";
 
 const LI = styled.li`
   display: flex;
@@ -7,81 +10,55 @@ const LI = styled.li`
   align-items: center;
   margin-bottom: 10px;
   border-bottom: 1px red;
+`;
 
-`
-export const TodoItem = ({ todo, setTodo, todos }) => {
+export const TodoItem = ({ todo }) => {
   const [isEdit, setIsEdit] = useState(false);
-  const [editId, setEditId] = useState();
-  const [editableTodo, setEditableTodo] = useState("");
-
-  const deleteHandler = (id) => {
-    setTodo(
-      todos.filter((todo) => {
-        return todo.id !== id;
-      })
-    );
-  };
+  const [activeModal, setActiveModal] = useState(false);
+  const dispatch = useDispatch();
 
   const changeHandler = (id) => {
-    setTodo(
-      todos.filter((todo) => {
-        if (todo.id === id) todo.completed = !todo.completed;
-        return todo;
-      })
-    );
-  };
-
-  const saveHandler = (id) => {
-    setIsEdit(!isEdit);
-    setTodo(
-      todos.map((todo) =>
-        todo.id === id ? { ...todo, title: editableTodo } : todo
-      )
-    );
+    dispatch(completeTodo(id));
   };
 
   const editHandler = (id) => {
-    setEditId(id);
+    setActiveModal((activeModal) => !activeModal);
     setIsEdit(() => !isEdit);
-    setEditableTodo(todos.find((todo) => todo.id === id).title);
   };
 
   return (
-    <LI className="todo__item">
-        <input
-          className="todo-complite"
-          onChange={() => changeHandler(todo.id)}
-          type="checkbox"
-          checked={todo.completed}
-        />
-        <div className="todo-text-wrap">
-          {isEdit && todo.id === editId ? (
-            <input
-              className="todo-edit"
-              type="text"
-              onChange={(e) => setEditableTodo(e.target.value)}
-              value={editableTodo}
-            />
-          ) : (
-            <span
-              className="todo-text"
-              style={{ textDecoration: todo.completed ? "line-through" : "" }}
-            >
-              {todo.title}
-            </span>
-          )}
-        </div>
+    <LI className="todo__item" draggable="true">
+      <input
+        className="todo-complite"
+        onChange={() => changeHandler(todo.id)}
+        type="checkbox"
+        checked={todo.completed}
+      />
+      <div className="todo-text-wrap">
+        <span
+          className="todo-text"
+          style={{ textDecoration: todo.completed ? "line-through" : "" }}
+        >
+          {todo.title}
+        </span>
+      </div>
 
-            <div>
-            {isEdit && editId === todo.id ? (
-          <button className="save-btn" onClick={() => saveHandler(todo.id)}>Save</button>
-        ) : (
-          <button className="edit-btn" onClick={() => editHandler(todo.id)}>Edit</button>
-        )}
-        <button className="delete-btn" onClick={() => deleteHandler(todo.id)}>
+      <div>
+        <button className="edit-btn" onClick={() => editHandler(todo.id)}>
+          Details
+        </button>
+        <button
+          className="delete-btn"
+          onClick={() => dispatch(removeTodo(todo.id))}
+        >
           Delete
         </button>
-            </div>
+      </div>
+      <Modal
+        setActiveModal={setActiveModal}
+        activeModal={activeModal}
+        todo={todo}
+      />
     </LI>
   );
 };

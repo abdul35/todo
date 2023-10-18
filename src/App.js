@@ -1,59 +1,84 @@
-
 import { useState } from "react";
-import TodoList from './components/TodoList'
-import { styled } from "styled-components"
+import TodoList from "./components/TodoList";
+import { styled } from "styled-components";
 import TodoAddInput from "./components/TodoAddInput";
-
+import TodoDescInput from "./components/TodoDescInput";
+import { useDispatch, useSelector } from "react-redux";
+import { addTodo } from "./redux/slices/todoSlice";
 
 const Container = styled.div`
   display: flex;
   justify-content: center;
-`
+`;
 const Button = styled.button`
   padding: 5px 9px;
   font-size: 1rem;
-  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
   background-color: lightgreen;
-`
+`;
+
+const SearchInput = styled.input`
+  padding: 5px 8px;
+  font-size: 1rem;
+  margin-top: 2rem;
+`;
 
 function App() {
-  const [todos, setTodo] = useState([
-    { id: 1, title: "Some text", completed: false },
-    { id: 2, title: "Lorem ipsum dolor sit.", completed: true },
-    { id: 3, title: "Lorem ipsum dolor 1.", completed: false },
-    {
-      id: 4,
-      title: "Lorem ipsum dolor sit amet consectetur.",
-      completed: true,
-    },
-  ]);
-  const [newTodo, setNewTodo] = useState('');
-
+  const { todos } = useSelector((state) => state.todos);
+  const dispatch = useDispatch();
+  const [newTodoTitle, setNewTodoTitle] = useState("");
+  const [newTodoDesc, setNewTodoDesc] = useState("");
+  const [searchTodo, setSearchTodo] = useState("");
   const addHandler = () => {
-    if (newTodo && newTodo.trim()) { 
-      setTodo([...todos, {id: Date.now(), title: newTodo, completed:false}])
-    }
-    setNewTodo('')
-  }
+    if (newTodoTitle && newTodoTitle.trim())
+      dispatch(
+        addTodo({
+          id: Date.now(),
+          title: newTodoTitle,
+          desc: newTodoDesc,
+          completed: false,
+        })
+      );
+    setNewTodoTitle("");
+    setNewTodoDesc("");
+  };
 
 
   return (
     <div className="App">
-      <header className="App-header">
+      <header className="header">
         <Container>
           <h1>Todo List App</h1>
         </Container>
         <Container>
-          <TodoAddInput newTodo={newTodo} setNewTodo={setNewTodo} />
+          <TodoAddInput
+            newTodoTitle={newTodoTitle}
+            setNewTodoTitle={setNewTodoTitle}
+          />
+          <TodoDescInput newTodoDesc={newTodoDesc} setNewTodoDesc={setNewTodoDesc} />
           <Button onClick={() => addHandler()}>Add</Button>
+        </Container>
+
+        <Container>
+          <div>
+            <SearchInput
+              className="search-input"
+              onChange={(e) => setSearchTodo(e.target.value)}
+              type="text"
+              placeholder="search todo..."
+            />
+          </div>
         </Container>
       </header>
       <main className="main">
         <Container>
-
-        <div className="todo">
-          <TodoList todos={todos} setTodo={setTodo} />
-        </div>
+          <div className="todo">
+            <TodoList
+              todos={todos.filter((todo) =>
+                todo.title.toLowerCase().includes(searchTodo.toLowerCase()) 
+              )}
+            />
+          </div>
         </Container>
       </main>
     </div>
